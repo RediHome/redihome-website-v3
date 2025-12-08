@@ -11,12 +11,39 @@ export default function ContactPage() {
     phone: '',
     message: ''
   });
+  const [status, setStatus] = useState('idle'); // idle, sending, success, error
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent('RediHome Inquiry');
-    const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\nMessage:\n${formData.message}`);
-    window.location.href = `mailto:sales@redihome.io?subject=${subject}&body=${body}`;
+    setStatus('sending');
+    
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          access_key: 'ffc88b2e-75f3-4778-9e26-3fe4f7f0e6c2',
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+          subject: 'New RediHome Lead!'
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setStatus('success');
+        setFormData({ name: '', email: '', phone: '', message: '' });
+      } else {
+        setStatus('error');
+      }
+    } catch (error) {
+      setStatus('error');
+    }
   };
 
   return (
@@ -38,54 +65,81 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div>
             <h2 className="headline-font" style={{ fontSize: 28, color: colors.text, marginBottom: 24 }}>Send Us a Message</h2>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 8 }}>Your Name</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  required
-                  style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `1px solid ${colors.backgroundAlt}`, background: colors.background, fontSize: 16 }}
-                  placeholder="John Smith"
-                />
+            
+            {status === 'success' ? (
+              <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: 24, borderRadius: 12, textAlign: 'center' }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>✓</div>
+                <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Message Sent!</div>
+                <p style={{ fontSize: 15 }}>Thanks for reaching out. We'll get back to you soon!</p>
+                <button 
+                  onClick={() => setStatus('idle')} 
+                  style={{ marginTop: 16, background: colors.primary, color: 'white', border: 'none', padding: '10px 20px', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Send Another Message
+                </button>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 8 }}>Email Address</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  required
-                  style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `1px solid ${colors.backgroundAlt}`, background: colors.background, fontSize: 16 }}
-                  placeholder="john@example.com"
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 8 }}>Phone Number</label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `1px solid ${colors.backgroundAlt}`, background: colors.background, fontSize: 16 }}
-                  placeholder="(205) 555-1234"
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 8 }}>Message</label>
-                <textarea
-                  value={formData.message}
-                  onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  required
-                  rows={5}
-                  style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `1px solid ${colors.backgroundAlt}`, background: colors.background, fontSize: 16, resize: 'vertical' }}
-                  placeholder="Tell us what you're looking for..."
-                />
-              </div>
-              <button type="submit" className="btn-accent" style={{ width: '100%', justifyContent: 'center', padding: '16px 32px', fontSize: 16 }}>
-                Send Message →
-              </button>
-            </form>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 8 }}>Your Name</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    required
+                    style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `1px solid ${colors.backgroundAlt}`, background: colors.background, fontSize: 16 }}
+                    placeholder="John Smith"
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 8 }}>Email Address</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    required
+                    style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `1px solid ${colors.backgroundAlt}`, background: colors.background, fontSize: 16 }}
+                    placeholder="john@example.com"
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 8 }}>Phone Number</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `1px solid ${colors.backgroundAlt}`, background: colors.background, fontSize: 16 }}
+                    placeholder="(205) 555-1234"
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: colors.text, marginBottom: 8 }}>Message</label>
+                  <textarea
+                    value={formData.message}
+                    onChange={(e) => setFormData({...formData, message: e.target.value})}
+                    required
+                    rows={5}
+                    style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `1px solid ${colors.backgroundAlt}`, background: colors.background, fontSize: 16, resize: 'vertical' }}
+                    placeholder="Tell us what you're looking for..."
+                  />
+                </div>
+                
+                {status === 'error' && (
+                  <div style={{ background: '#f8d7da', border: '1px solid #f5c6cb', color: '#721c24', padding: 12, borderRadius: 8, fontSize: 14 }}>
+                    Something went wrong. Please try again or email us directly at sales@redihome.io
+                  </div>
+                )}
+                
+                <button 
+                  type="submit" 
+                  disabled={status === 'sending'}
+                  className="btn-accent" 
+                  style={{ width: '100%', justifyContent: 'center', padding: '16px 32px', fontSize: 16, opacity: status === 'sending' ? 0.7 : 1 }}
+                >
+                  {status === 'sending' ? 'Sending...' : 'Send Message →'}
+                </button>
+              </form>
+            )}
           </div>
           
           {/* Contact Info */}
